@@ -6,8 +6,9 @@
 <title>حاسبة الاعلانات  (CPA, ROI, CAC, LTV)</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="window._jspdfLoadError=true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onerror="window._html2canvasLoadError=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window._chartLoadError=true"></script>
 <style>
 :root{
   --bg:#f6f8fb; --card:#ffffff; --text:#0f1724; --muted:#6b7280; --accent:#4f46e5;
@@ -37,6 +38,7 @@ thead th{background:linear-gradient(90deg,#16a34a,#4ade80);color:#fff;position:s
 tbody td{border:1px solid #ccc;padding:6px;text-align:center;color:var(--text);}
 tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
 .small-muted{font-size:0.88rem;color:var(--muted);}
+#status{min-height:20px}
 @media (max-width:768px){ .controls .col-md-3, .controls .col-md-4, .controls .col-md-9{flex:0 0 100%;max-width:100%} }
 </style>
 </head>
@@ -48,7 +50,7 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
         <h1>📊 E-Commerce Calculator </h1>
         <div class="muted">أحسب بكل سهولة بأختيارات تحميل مرنة (تصميم : محمود زكي)</div>
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center">
         <select id="currency" class="form-select" style="width:110px">
           <option value="EGP">EGP</option>
           <option value="USD">USD</option>
@@ -61,47 +63,50 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
       </div>
     </div>
 
+    <div id="status" class="small-muted mb-2"></div>
+
     <!-- inputs -->
     <div class="row controls g-3">
       <div class="col-md-3">
         <label>💵 سعر البيع (AOV)</label>
-        <input id="price" class="form-control" type="number" value="400">
+        <input id="price" class="form-control" type="number" value="">
       </div>
       <div class="col-md-3">
         <label>📦 تكلفة المنتج (COGS)</label>
-        <input id="cogs" class="form-control" type="number" value="200">
+        <input id="cogs" class="form-control" type="number" value="">
       </div>
       <div class="col-md-3">
         <label>🚚 شحن الاوردر المتسلم</label>
-        <input id="shippingDelivered" class="form-control" type="number" value="50">
+        <input id="shippingDelivered" class="form-control" type="number" value="">
       </div>
       <div class="col-md-3">
         <label>🚚 شحن الاوردر المرتجع</label>
-        <input id="shippingReturn" class="form-control" type="number" value="30">
+        <input id="shippingReturn" class="form-control" type="number" value="">
       </div>
 
       <div class="col-md-3">
         <label>📈 نسبة التسليم (%)</label>
-        <input id="deliveryRate" class="form-control" type="number" value="70">
+        <input id="deliveryRate" class="form-control" type="number" value="">
       </div>
 
       <div class="col-md-3">
         <label>🎯 عايز كام اوردر </label>
-        <input id="targetOrders" class="form-control" type="number" value="1000">
+        <input id="targetOrders" class="form-control" type="number" value="">
       </div>
       <div class="col-md-3">
         <label>🔁 LTV — متوقع العميل يشتري كام مرة </label>
-        <input id="ltvMultiplier" class="form-control" type="number" step="0.1" value="1.2">
+        <input id="ltvMultiplier" class="form-control" type="number" step="0.1" value="">
       </div>
 
       <div class="col-md-9">
         <label>📌 حط الـ CPA (حط علام , بين كل رقم والتاني)</label>
-        <input id="cpaInput" class="form-control" type="text" value="10,20,30,40,50,75,100,130,150,180,200">
+        <input id="cpaInput" class="form-control" type="text" value="">
         <div class="small-muted mt-1">مثال: 10,20,30 أو 5-200:5</div>
       </div>
-      <div class="col-md-3 d-flex align-items-end">
-        <button id="calcBtn" class="btn btn-primary w-100">⚡ احسب دلوقتي</button>
-      </div>
+      <div class="col-md-3 d-flex align-items-end gap-2">
+  <button id="calcBtn" class="btn btn-primary w-100">⚡ احسب دلوقتي</button>
+  <button id="clearBtn" class="btn btn-outline-danger w-100">🧹 امسح المدخلات</button>
+</div>
     </div>
 
     <!-- summary cards -->
@@ -124,7 +129,7 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
               <th>إجمالي تكلفة الإعلانات</th>
               <th>إجمالي شحن</th>
               <th>إجمالي تكلفة البضاعة</th>
-              <th>تكلفة الأوردرات المرتجعة</th>
+              <th>Break-Even CPA</th>
               <th>إجمالي الإيرادات الصافية</th>
               <th>صافي الربح للتارجت</th>
               <th>ROI %</th>
@@ -160,6 +165,13 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
       </div>
     </div>
 
+    <!-- charts -->
+    <div class="table-card mt-3">
+      <div><strong>📈 الرسوم البيانية</strong></div>
+      <div style="height:160px"><canvas id="profitChart" height="160"></canvas></div>
+      <div style="height:160px"><canvas id="ltvChart" height="160" class="mt-4"></canvas></div>
+    </div>
+
     <div class="muted mt-3">ملاحظة: الحسابات تقريبية وتعتمد على المدخلات اللي كتبتها فوق.</div>
   </div>
 </div>
@@ -167,25 +179,45 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
 <script>
 (function(){
   const $ = id => document.getElementById(id);
+  function setStatus(msg, isError=false){
+    const el = $('status');
+    if(el){ el.innerText = msg || ''; el.style.color = isError ? 'var(--bad)' : 'var(--good)'; }
+    console.log('STATUS:', msg, isError);
+  }
+
+  window.addEventListener('error', (e)=>{
+    setStatus(e.message || 'Error occurred', true);
+    console.error(e);
+  });
 
   function parseCPAInput(text){
     const t = (text||'').trim();
     if(!t) return [10,20,30];
-    const range = t.match(/^(\\d+(?:\\.\\d+)?)-(\\d+(?:\\.\\d+)?):(\\d+(?:\\.\\d+)?)$/);
-    if(range){
-      const s=parseFloat(range[1]), e=parseFloat(range[2]), step=parseFloat(range[3]);
-      const arr=[]; for(let v=s;v<=e+1e-9;v+=step) arr.push(Math.round((v+Number.EPSILON)*100)/100); return arr;
+    // support range like "5-200:5" or comma-separated list
+    if(t.indexOf('-')>-1 && t.indexOf(':')>-1){
+      const parts = t.split(':');
+      const rangePart = parts[0];
+      const stepPart = parts[1] || '1';
+      const [sStr, eStr] = rangePart.split('-');
+      const s = parseFloat(sStr);
+      const e = parseFloat(eStr);
+      const step = parseFloat(stepPart);
+      if(!isNaN(s) && !isNaN(e) && !isNaN(step) && step>0){
+        const arr=[];
+        for(let v=s; v<=e+1e-9; v+=step) arr.push(Math.round((v+Number.EPSILON)*100)/100);
+        return arr;
+      }
     }
     return t.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v));
   }
 
-  function f(n){ return Math.round((n+Number.EPSILON)*100)/100; }
+  function f(n){ return Math.round((Number(n)||0 + Number.EPSILON)*100)/100; }
 
   function computeForCPA(params,cpa){
     const {price,cogs,shippingDelivered,shippingReturn,deliveryRate,targetOrders,ltvMultiplier} = params;
     const delivery = Math.max(0.0001, deliveryRate/100);
     const deliveredOrders = targetOrders * delivery;
-    const returnedOrders = targetOrders - deliveredOrders;
+    const returnedOrders = Math.max(0, targetOrders - deliveredOrders);
     const effectiveAdPerDelivered = cpa / delivery;
     const totalAds = effectiveAdPerDelivered * deliveredOrders;
     const totalShipping = deliveredOrders * shippingDelivered;
@@ -199,135 +231,217 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
     const cac = deliveredOrders>0 ? totalAds/deliveredOrders : 0;
     const ltv = (price - cogs - shippingDelivered) * ltvMultiplier;
     const ltvToCac = cac>0 ? ltv/cac : 0;
-    return {cpa:f(cpa),deliveredOrders:f(deliveredOrders),effectiveAdPerDelivered:f(effectiveAdPerDelivered),profitPerDelivered:f(profitPerDelivered),totalAds:f(totalAds),totalShipping:f(totalShipping),totalCOGS:f(totalCOGS),totalReturnCost:f(totalReturnCost),totalRevenueNet:f(totalRevenueNet),netProfit:f(netProfit),marginPct:f(marginPct),roi:f(roi),cac:f(cac),ltv:f(ltv),ltvToCac:f(ltvToCac)};
+    const breakEvenCPA = price - cogs - shippingDelivered;
+    return {cpa:f(cpa),deliveredOrders:f(deliveredOrders),returnedOrders:f(returnedOrders),effectiveAdPerDelivered:f(effectiveAdPerDelivered),profitPerDelivered:f(profitPerDelivered),totalAds:f(totalAds),totalShipping:f(totalShipping),totalCOGS:f(totalCOGS),totalReturnCost:f(totalReturnCost),totalRevenueNet:f(totalRevenueNet),netProfit:f(netProfit),marginPct:f(marginPct),roi:f(roi),cac:f(cac),ltv:f(ltv),ltvToCac:f(ltvToCac),breakEvenCPA:f(breakEvenCPA)};
+  }
+
+  let profitChart = null, ltvChart = null;
+
+  function renderCharts(rows){
+    try{
+      if(typeof Chart === 'undefined'){ setStatus('Chart.js غير محمّل — الرسوم البيانية لن تظهر', true); return; }
+      const labels = rows.map(r=>r.cpa);
+      const profitData = rows.map(r=>r.netProfit);
+      const ltvRatioData = rows.map(r=>f(r.ltvToCac));
+      // destroy
+      if(profitChart){ try{ profitChart.destroy(); }catch(e){} profitChart=null; }
+      if(ltvChart){ try{ ltvChart.destroy(); }catch(e){} ltvChart=null; }
+      const profitCtx = document.getElementById('profitChart').getContext('2d');
+      profitChart = new Chart(profitCtx, {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Net Profit', data: profitData, fill:false, tension:0.3, pointRadius:4 }] },
+        options: { responsive:true, maintainAspectRatio:false, scales:{ x:{ title:{display:true,text:'CPA'} }, y:{ title:{display:true,text:'Net Profit'} } } }
+      });
+      const ltvCtx = document.getElementById('ltvChart').getContext('2d');
+      ltvChart = new Chart(ltvCtx, { type:'bar', data:{ labels, datasets:[{ label:'LTV / CAC', data:ltvRatioData, borderWidth:1 }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{ title:{display:true,text:'CPA'} }, y:{ title:{display:true,text:'LTV / CAC'}, beginAtZero:true } } } });
+      setStatus('تم تحديث الجداول والرسوم البيانية', false);
+    }catch(err){ console.error(err); setStatus('خطأ في عرض الرسوم: '+err.message, true); }
   }
 
   function calcAndRender(){
-    const currency = $('currency').value || 'EGP';
-    const params = {
-      price: parseFloat($('price').value)||0,
-      cogs: parseFloat($('cogs').value)||0,
-      shippingDelivered: parseFloat($('shippingDelivered').value)||0,
-      shippingReturn: parseFloat($('shippingReturn').value)||0,
-      deliveryRate: parseFloat($('deliveryRate').value)||100,
-      targetOrders: parseFloat($('targetOrders').value)||0,
-      ltvMultiplier: Math.max(0, parseFloat($('ltvMultiplier').value)||0)
-    };
-    const cpaList = parseCPAInput($('cpaInput').value);
-    const rows = cpaList.map(cpa => computeForCPA(params, cpa));
+    try{
+      setStatus('...جاري الحساب');
+      const currency = $('currency').value || 'EGP';
+      const params = {
+        price: parseFloat($('price').value)||0,
+        cogs: parseFloat($('cogs').value)||0,
+        shippingDelivered: parseFloat($('shippingDelivered').value)||0,
+        shippingReturn: parseFloat($('shippingReturn').value)||0,
+        deliveryRate: parseFloat($('deliveryRate').value)||100,
+        targetOrders: parseFloat($('targetOrders').value)||0,
+        ltvMultiplier: Math.max(0, parseFloat($('ltvMultiplier').value)||0)
+      };
 
-    // summary cards
-    const avgProfit = f(rows.reduce((a,b)=>a+b.profitPerDelivered,0)/rows.length);
-    const avgROI = f(rows.reduce((a,b)=>a+b.roi,0)/rows.length);
-    const avgCPA = f(rows.reduce((a,b)=>a+b.cpa,0)/rows.length);
-    const sum = $('summaryGrid');
-    sum.innerHTML = `
-      <div class="summary-card blue">
-        <div class="title">📊 متوسط الربح لكل أوردر</div>
-        <div class="value ${avgProfit>=0 ? 'good' : 'bad'}">${avgProfit} ${currency}</div>
-        <div class="small-muted">متوسط على CPAs المدخلة</div>
-      </div>
-      <div class="summary-card green">
-        <div class="title">💰 متوسط إجمالي ربح التارجت</div>
-        <div class="value">${f(rows.reduce((a,b)=>a+b.netProfit,0)/rows.length)} ${currency}</div>
-        <div class="small-muted">متوسط على CPAs</div>
-      </div>
-      <div class="summary-card green">
-        <div class="title">🏆 متوسط CPA</div>
-        <div class="value">${avgCPA} ${currency}</div>
-        <div class="small-muted">متوسط على CPAs</div>
-      </div>
-      <div class="summary-card purple">
-        <div class="title">📈 متوسط ROI</div>
-        <div class="value">${avgROI} %</div>
-        <div class="small-muted">متوسط على CPAs</div>
-      </div>
-      <div class="summary-card orange">
-        <div class="title">🛑 تكلفة الأوردر المرتجع</div>
-        <div class="value">${f(params.shippingReturn)} ${currency}</div>
-        <div class="small-muted">تكلفة شحن المرتجع</div>
-      </div>
-    `;
+      const cpaList = parseCPAInput($('cpaInput').value);
+      if(!cpaList.length){ setStatus('محتاج تحط قيم CPA صحيحة', true); return; }
+      const rows = cpaList.map(cpa => computeForCPA(params, cpa));
 
-    // main results table
-    const tbody = document.querySelector('#resultsTable tbody');
-    tbody.innerHTML = '';
-    rows.forEach(r=>{
-      const tr=document.createElement('tr');
-      let profitClass = 'good';
-      if(r.netProfit<0) profitClass='bad';
-      else if(Math.abs(r.netProfit)<r.totalRevenueNet*0.05) profitClass='warn';
-      tr.innerHTML=`
-        <td>${r.cpa}</td>
-        <td>${r.deliveredOrders}</td>
-        <td>${r.effectiveAdPerDelivered} ${currency}</td>
-        <td class="value ${r.profitPerDelivered>=0?'good':'bad'}">${r.profitPerDelivered} ${currency}</td>
-        <td>${r.marginPct}%</td>
-        <td>${r.totalAds} ${currency}</td>
-        <td>${r.totalShipping} ${currency}</td>
-        <td>${r.totalCOGS} ${currency}</td>
-        <td class="value ${r.totalReturnCost>0?'warn':''}">${r.totalReturnCost} ${currency}</td>
-        <td>${r.totalRevenueNet} ${currency}</td>
-        <td class="value ${profitClass}">${r.netProfit} ${currency}</td>
-        <td>${r.roi} %</td>
-        <td>${r.cac} ${currency}</td>
-        <td>${r.ltv} ${currency}</td>
-        <td>${r.ltvToCac}</td>
+      // summary
+      const avgProfit = f(rows.reduce((a,b)=>a+b.profitPerDelivered,0)/rows.length);
+      const avgROI = f(rows.reduce((a,b)=>a+b.roi,0)/rows.length);
+      const avgCPA = f(rows.reduce((a,b)=>a+b.cpa,0)/rows.length);
+      const sum = $('summaryGrid');
+      sum.innerHTML = `
+        <div class="summary-card blue">
+          <div class="title">📊 متوسط الربح لكل أوردر</div>
+          <div class="value ${avgProfit>=0 ? 'good' : 'bad'}">${avgProfit} ${currency}</div>
+          <div class="small-muted">متوسط على CPAs المدخلة</div>
+        </div>
+        <div class="summary-card green">
+          <div class="title">💰 متوسط إجمالي ربح التارجت</div>
+          <div class="value">${f(rows.reduce((a,b)=>a+b.netProfit,0)/rows.length)} ${currency}</div>
+          <div class="small-muted">متوسط على CPAs</div>
+        </div>
+        <div class="summary-card green">
+          <div class="title">🏆 متوسط CPA</div>
+          <div class="value">${avgCPA} ${currency}</div>
+          <div class="small-muted">متوسط على CPAs</div>
+        </div>
+        <div class="summary-card purple">
+          <div class="title">📈 متوسط ROI</div>
+          <div class="value">${avgROI} %</div>
+          <div class="small-muted">متوسط على CPAs</div>
+        </div>
+        <div class="summary-card orange">
+          <div class="title">⚖️ Break-Even CPA</div>
+          <div class="value">${f(params.price - params.cogs - params.shippingDelivered)} ${currency}</div>
+          <div class="small-muted">أقصى CPA للربح 0</div>
+        </div>
       `;
-      tbody.appendChild(tr);
-    });
 
-    // new LTV vs CAC table
-    const ltvTbody = document.querySelector('#ltvTable tbody');
-    ltvTbody.innerHTML = '';
-    rows.forEach(r=>{
-      const tr = document.createElement('tr');
-      const state = r.ltvToCac >= 1 ? 'ربح' : 'خسارة';
-      const expectedProfit = (r.ltvToCac-1)*r.cac*r.deliveredOrders;
-      tr.innerHTML=`
-        <td>${r.cpa}</td>
-        <td>${r.cac} ${currency}</td>
-        <td>${r.ltv} ${currency}</td>
-        <td>${f(r.ltvToCac)}</td>
-        <td class="value ${state==='ربح'?'good':'bad'}">${state}</td>
-        <td>${f(expectedProfit)} ${currency}</td>
-      `;
-      ltvTbody.appendChild(tr);
-    });
+      // results table
+      const tbody = document.querySelector('#resultsTable tbody');
+      tbody.innerHTML = '';
+      rows.forEach(r=>{
+        const tr = document.createElement('tr');
+        let profitClass = 'good';
+        if(r.netProfit<0) profitClass='bad';
+        else if(Math.abs(r.netProfit)<Math.abs(r.totalRevenueNet)*0.05) profitClass='warn';
+        tr.innerHTML = `
+          <td>${r.cpa}</td>
+          <td>${r.deliveredOrders}</td>
+          <td>${r.effectiveAdPerDelivered} ${currency}</td>
+          <td class="value ${r.profitPerDelivered>=0?'good':'bad'}">${r.profitPerDelivered} ${currency}</td>
+          <td>${r.marginPct}%</td>
+          <td>${r.totalAds} ${currency}</td>
+          <td>${r.totalShipping} ${currency}</td>
+          <td>${r.totalCOGS} ${currency}</td>
+          <td>${r.breakEvenCPA} ${currency}</td>
+          <td>${r.totalRevenueNet} ${currency}</td>
+          <td class="value ${profitClass}">${r.netProfit} ${currency}</td>
+          <td>${r.roi} %</td>
+          <td>${r.cac} ${currency}</td>
+          <td>${r.ltv} ${currency}</td>
+          <td>${f(r.ltvToCac)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // LTV table
+      const ltvTbody = document.querySelector('#ltvTable tbody');
+      ltvTbody.innerHTML = '';
+      rows.forEach(r=>{
+        const tr = document.createElement('tr');
+        const state = r.ltvToCac >= 1 ? 'ربح' : 'خسارة';
+        const expectedProfit = (r.ltvToCac-1)*r.cac*r.deliveredOrders;
+        tr.innerHTML = `
+          <td>${r.cpa}</td>
+          <td>${r.cac} ${currency}</td>
+          <td>${r.ltv} ${currency}</td>
+          <td>${f(r.ltvToCac)}</td>
+          <td class="value ${state==='ربح'?'good':'bad'}">${state}</td>
+          <td>${f(expectedProfit)} ${currency}</td>
+        `;
+        ltvTbody.appendChild(tr);
+      });
+
+      // charts (try, but don't fail entire flow)
+      try{ renderCharts(rows); }catch(e){ console.error(e); }
+
+    setStatus('تم الحساب — شوف الجدول والرسوم تحت', false);
+    }catch(err){ console.error(err); setStatus('خطأ أثناء الحساب: '+err.message, true); }
   }
 
-  $('calcBtn').addEventListener('click',calcAndRender);
+  function exportCsvFn(){
+    try{
+      const rows = Array.from(document.querySelectorAll('#resultsTable tbody tr'));
+      if(!rows.length){ setStatus('مفيش بيانات عشان تحميل CSV', true); return; }
+      const header = Array.from(document.querySelectorAll('#resultsTable thead th')).map(th=>th.innerText);
+      const data = [header].concat(rows.map(row => Array.from(row.querySelectorAll('td')).map(cell=>cell.innerText)));
+      const csvContent = data.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = 'results.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatus('CSV تم تنزيله', false);
+    }catch(err){ console.error(err); setStatus('فشل تصدير CSV: '+err.message, true); }
+  }
 
-  // dark/light mode toggle
-  $('toggleMode').addEventListener('click',()=>document.body.classList.toggle('dark-mode'));
+  function exportPdfFn(){
+    try{
+      if(typeof html2canvas === 'undefined' || (typeof window.jspdf === 'undefined' && typeof jspdf === 'undefined')){
+        setStatus('html2canvas أو jspdf غير محمّلين — لا يمكن تصدير PDF', true); return;
+      }
+      const JsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (typeof jspdf !== 'undefined' && jspdf.jsPDF ? jspdf.jsPDF : null);
+      if(!JsPDF){ setStatus('jspdf غير متوفر لعمل PDF', true); return; }
+      setStatus('جاري تجهيز PDF — انتظر لحظة...');
+      html2canvas(document.querySelector('.card-app'), {useCORS:true, scale:1.5}).then(canvas=>{
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new JsPDF('p','pt','a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth)/imgProps.width;
+        pdf.addImage(imgData,'PNG',0,0,pdfWidth,pdfHeight);
+        pdf.save('results.pdf');
+        setStatus('تم تنزيل PDF', false);
+      }).catch(err=>{ console.error(err); setStatus('فشل إنشاء صورة PDF: '+err.message, true); });
+    }catch(err){ console.error(err); setStatus('فشل تصدير PDF: '+err.message, true); }
+  }
 
-  // CSV export
-  $('exportCsv').addEventListener('click', () => {
-    const rows = Array.from(document.querySelectorAll('#resultsTable tr'));
-    const csvContent = rows.map(row => Array.from(row.querySelectorAll('th, td')).map(cell=>`"${cell.innerText.replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href=url; link.setAttribute('download','results.csv'); link.click();
+  function init(){
+const clearBtn = $('clearBtn');
+if(clearBtn){
+  clearBtn.addEventListener('click', ()=>{
+    // فضي كل الخانات
+    $('price').value = '';
+    $('cogs').value = '';
+    $('shippingDelivered').value = '';
+    $('shippingReturn').value = '';
+    $('deliveryRate').value = '';
+    $('targetOrders').value = '';
+    $('ltvMultiplier').value = '';
+    $('cpaInput').value = '';
+    setStatus('تم مسح كل المدخلات', false);
+    $('summaryGrid').innerHTML = '';
+    document.querySelector('#resultsTable tbody').innerHTML = '';
+    document.querySelector('#ltvTable tbody').innerHTML = '';
   });
+}
 
-  // PDF export
-  $('exportPdf').addEventListener('click', () => {
-    html2canvas(document.querySelector('.card-app')).then(canvas=>{
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jspdf.jsPDF('p','pt','a4');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth)/imgProps.width;
-      pdf.addImage(imgData,'PNG',0,0,pdfWidth,pdfHeight);
-      pdf.save('results.pdf');
-    });
-  });
+    // attach events
+    const calcBtn = $('calcBtn');
+    const exportCsv = $('exportCsv');
+    const exportPdf = $('exportPdf');
+    const toggleMode = $('toggleMode');
+    if(!calcBtn || !exportCsv || !exportPdf || !toggleMode){ setTimeout(init,100); return; }
+    calcBtn.addEventListener('click', calcAndRender);
+    exportCsv.addEventListener('click', exportCsvFn);
+    exportPdf.addEventListener('click', exportPdfFn);
+    toggleMode.addEventListener('click', ()=>document.body.classList.toggle('dark-mode'));
+    // initial run
+    calcAndRender();
+    // detect load errors of libs
+    if(window._chartLoadError) setStatus('فشل تحميل Chart.js — الرسوم البيانية لن تعمل', true);
+    if(window._html2canvasLoadError) setStatus('فشل تحميل html2canvas — تصدير PDF لن يعمل', true);
+    if(window._jspdfLoadError) setStatus('فشل تحميل jspdf — تصدير PDF لن يعمل', true);
+  }
 
-  calcAndRender();
+  window.addEventListener('load', init);
 })();
 </script>
 </body>
 </html>
-
-
