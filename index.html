@@ -297,7 +297,33 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
   }
 
   $('calcBtn').addEventListener('click',calcAndRender);
+
+  // dark/light mode toggle
   $('toggleMode').addEventListener('click',()=>document.body.classList.toggle('dark-mode'));
+
+  // CSV export
+  $('exportCsv').addEventListener('click', () => {
+    const rows = Array.from(document.querySelectorAll('#resultsTable tr'));
+    const csvContent = rows.map(row => Array.from(row.querySelectorAll('th, td')).map(cell=>`"${cell.innerText.replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href=url; link.setAttribute('download','results.csv'); link.click();
+  });
+
+  // PDF export
+  $('exportPdf').addEventListener('click', () => {
+    html2canvas(document.querySelector('.card-app')).then(canvas=>{
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jspdf.jsPDF('p','pt','a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth)/imgProps.width;
+      pdf.addImage(imgData,'PNG',0,0,pdfWidth,pdfHeight);
+      pdf.save('results.pdf');
+    });
+  });
+
   calcAndRender();
 })();
 </script>
