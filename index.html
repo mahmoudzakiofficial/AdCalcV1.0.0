@@ -120,24 +120,26 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
       <div class="table-responsive">
         <table class="table table-bordered table-sm" id="resultsTable">
           <thead>
-            <tr>
-              <th>CPA</th>
-              <th>عدد الأوردرات المتسلمة</th>
-              <th>التكلفة الفعلية لكل/أوردر</th>
-              <th>ربحك في الاوردر الواحد</th>
-              <th>هامش %</th>
-              <th>إجمالي تكلفة الإعلانات</th>
-              <th>إجمالي شحن</th>
-              <th>إجمالي تكلفة البضاعة</th>
-              <th>Break-Even CPA</th>
-              <th>إجمالي الإيرادات الصافية</th>
-              <th>صافي الربح للتارجت</th>
-              <th>ROI %</th>
-              <th>CAC</th>
-              <th>LTV</th>
-              <th>LTV / CAC</th>
-            </tr>
-          </thead>
+  <tr>
+    <th>CPA</th>
+    <th>عدد الأوردرات المتسلمة</th>
+    <th>التكلفة الفعلية لكل/أوردر</th>
+    <th>ربحك في الاوردر الواحد</th>
+    <th>هامش %</th>
+    <th>إجمالي تكلفة الإعلانات</th>
+    <th>إجمالي شحن</th>
+    <th>إجمالي تكلفة البضاعة</th>
+    <th>إجمالي تكلفة شحن المرتجعات</th> <!-- 👈 بديل عن Break-Even -->
+    <th>إجمالي الإيرادات الصافية</th>
+    <th>صافي الربح للتارجت</th>
+    <th>ROI %</th>
+    <th>CAC</th>
+    <th>LTV</th>
+    <th>LTV / CAC</th>
+  </tr>
+</thead>
+<tbody></tbody>
+
           <tbody></tbody>
         </table>
       </div>
@@ -326,7 +328,7 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
           <td>${r.totalAds} ${currency}</td>
           <td>${r.totalShipping} ${currency}</td>
           <td>${r.totalCOGS} ${currency}</td>
-          <td>${r.breakEvenCPA} ${currency}</td>
+          <td>${r.totalReturnCost} ${currency}</td>
           <td>${r.totalRevenueNet} ${currency}</td>
           <td class="value ${profitClass}">${r.netProfit} ${currency}</td>
           <td>${r.roi} %</td>
