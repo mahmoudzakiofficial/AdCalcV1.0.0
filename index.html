@@ -100,7 +100,7 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
 
       <div class="col-md-9">
         <label>📌 حط الـ CPA (حط علام , بين كل رقم والتاني)</label>
-        <input id="cpaInput" class="form-control" type="text" value="">
+        <input id="cpaInput" class="form-control" type="text" value="10,20,30,40,50,75,100,200,300,400,500">
         <div class="small-muted mt-1">مثال: 10,20,30 أو 5-200:5</div>
       </div>
       <div class="col-md-3 d-flex align-items-end gap-2">
@@ -122,8 +122,8 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
           <thead>
   <tr>
     <th>CPA</th>
-    <th>عدد الأوردرات المتسلمة</th>
-    <th>التكلفة الفعلية لكل/أوردر</th>
+    <th>الاوردر المتسلمة</th>
+    <th>التكلفة الفعلية لكل اوردر</th>
     <th>ربحك في الاوردر الواحد</th>
     <th>هامش %</th>
     <th>إجمالي تكلفة الإعلانات</th>
@@ -132,6 +132,7 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
     <th>إجمالي تكلفة شحن المرتجعات</th> <!-- 👈 بديل عن Break-Even -->
     <th>إجمالي الإيرادات الصافية</th>
     <th>صافي الربح للتارجت</th>
+    <th>ROAS</th>
     <th>ROI %</th>
     <th>CAC</th>
     <th>LTV</th>
@@ -278,38 +279,47 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
       if(!cpaList.length){ setStatus('محتاج تحط قيم CPA صحيحة', true); return; }
       const rows = cpaList.map(cpa => computeForCPA(params, cpa));
 
-      // summary
-      const avgProfit = f(rows.reduce((a,b)=>a+b.profitPerDelivered,0)/rows.length);
-      const avgROI = f(rows.reduce((a,b)=>a+b.roi,0)/rows.length);
-      const avgCPA = f(rows.reduce((a,b)=>a+b.cpa,0)/rows.length);
-      const sum = $('summaryGrid');
-      sum.innerHTML = `
-        <div class="summary-card blue">
-          <div class="title">📊 متوسط الربح لكل أوردر</div>
-          <div class="value ${avgProfit>=0 ? 'good' : 'bad'}">${avgProfit} ${currency}</div>
-          <div class="small-muted">متوسط على CPAs المدخلة</div>
-        </div>
-        <div class="summary-card green">
-          <div class="title">💰 متوسط إجمالي ربح التارجت</div>
-          <div class="value">${f(rows.reduce((a,b)=>a+b.netProfit,0)/rows.length)} ${currency}</div>
-          <div class="small-muted">متوسط على CPAs</div>
-        </div>
-        <div class="summary-card green">
-          <div class="title">🏆 متوسط CPA</div>
-          <div class="value">${avgCPA} ${currency}</div>
-          <div class="small-muted">متوسط على CPAs</div>
-        </div>
-        <div class="summary-card purple">
-          <div class="title">📈 متوسط ROI</div>
-          <div class="value">${avgROI} %</div>
-          <div class="small-muted">متوسط على CPAs</div>
-        </div>
-        <div class="summary-card orange">
-          <div class="title">⚖️ Break-Even CPA</div>
-          <div class="value">${f(params.price - params.cogs - params.shippingDelivered)} ${currency}</div>
-          <div class="small-muted">أقصى CPA للربح 0</div>
-        </div>
-      `;
+// summary
+const avgProfit = f(rows.reduce((a,b)=>a+b.profitPerDelivered,0)/rows.length);
+const avgROI = f(rows.reduce((a,b)=>a+b.roi,0)/rows.length);
+const avgCPA = f(rows.reduce((a,b)=>a+b.cpa,0)/rows.length);
+const breakEvenCPA = f(params.price - params.cogs - params.shippingDelivered);
+const breakEvenROAS = f(params.price / (params.cogs + params.shippingDelivered)); // 💡 هنا حسبنا ROAS التعادل
+
+const sum = $('summaryGrid');
+sum.innerHTML = `
+  <div class="summary-card blue">
+    <div class="title">📊 متوسط الربح لكل أوردر</div>
+    <div class="value ${avgProfit>=0 ? 'good' : 'bad'}">${avgProfit} ${currency}</div>
+    <div class="small-muted">متوسط على CPAs المدخلة</div>
+  </div>
+  <div class="summary-card green">
+    <div class="title">💰 متوسط إجمالي ربح التارجت</div>
+    <div class="value">${f(rows.reduce((a,b)=>a+b.netProfit,0)/rows.length)} ${currency}</div>
+    <div class="small-muted">متوسط على CPAs</div>
+  </div>
+  <div class="summary-card green">
+    <div class="title">🏆 متوسط CPA</div>
+    <div class="value">${avgCPA} ${currency}</div>
+    <div class="small-muted">متوسط على CPAs</div>
+  </div>
+  <div class="summary-card purple">
+    <div class="title">📈 متوسط ROI</div>
+    <div class="value">${avgROI} %</div>
+    <div class="small-muted">متوسط على CPAs</div>
+  </div>
+  <div class="summary-card orange">
+    <div class="title">⚖️ Break-Even CPA</div>
+    <div class="value">${breakEvenCPA} ${currency}</div>
+    <div class="small-muted">أقصى CPA للربح 0</div>
+  </div>
+  <div class="summary-card purple">
+    <div class="title">📊 Break-Even ROAS</div>
+    <div class="value">${breakEvenROAS}x</div>
+    <div class="small-muted">أقل ROAS لتحقيق التعادل</div>
+  </div>
+`;
+
 
       // results table
       const tbody = document.querySelector('#resultsTable tbody');
@@ -331,6 +341,7 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
           <td>${r.totalReturnCost} ${currency}</td>
           <td>${r.totalRevenueNet} ${currency}</td>
           <td class="value ${profitClass}">${r.netProfit} ${currency}</td>
+          <td>${r.totalAds > 0 ? f(r.totalRevenueNet / r.totalAds)+'x' : '-'}</td>
           <td>${r.roi} %</td>
           <td>${r.cac} ${currency}</td>
           <td>${r.ltv} ${currency}</td>
