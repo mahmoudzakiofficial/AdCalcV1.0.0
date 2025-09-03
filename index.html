@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>حاسبة الاعلانات  (CPA, ROI, CAC, LTV)</title>
+<title>حاسبة الاعلانات (CPA, ROI, CAC, LTV)</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="window._jspdfLoadError=true"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onerror="window._html2canvasLoadError=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window._chartLoadError=true"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 <style>
 :root{
   --bg:#f6f8fb; --card:#ffffff; --text:#0f1724; --muted:#6b7280; --accent:#4f46e5;
@@ -32,22 +33,137 @@ input.form-control, select.form-select{border-radius:10px;border:1px solid #e6ee
 .value.good{color:var(--good)}
 .value.bad{color:var(--bad)}
 .value.warn{color:var(--warn)}
-.table-card{margin-top:18px;padding:12px;background:var(--card);border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.04);transition:all 0.3s;}
+.table-card{margin-top:18px;padding:12px;background:var(--card);border-radius:12px;box-shadow:0 6-px 18px rgba(2,6,23,0.04);transition:all 0.3s;}
 table{font-size:0.95rem;border-collapse:collapse;width:100%;transition:all 0.3s;}
 thead th{background:linear-gradient(90deg,#16a34a,#4ade80);color:#fff;position:sticky;top:0;z-index:1;padding:8px;border:1px solid #ccc;}
 tbody td{border:1px solid #ccc;padding:6px;text-align:center;color:var(--text);}
 tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
 .small-muted{font-size:0.88rem;color:var(--muted);}
 #status{min-height:20px}
+/* Standard Mode */
+.standard-mode #monthlyCosts-group, .standard-mode #confirmationRate-group, .standard-mode #itemPrice-group, .standard-mode #shippingCost-group, .standard-mode #sellingPriceAffiliate-group, .standard-mode #commission-group { display: none; }
+.standard-mode .affiliate-column { display: none; }
+.standard-mode .ecommerce-column { display: table-cell; }
+.standard-mode #ltv-table-detailed, .standard-mode #charts-detailed { display: block; }
+/* Advanced Mode */
+.advanced-mode #itemPrice-group, .advanced-mode #shippingCost-group, .advanced-mode #sellingPriceAffiliate-group, .advanced-mode #commission-group { display: none; }
+.advanced-mode #targetOrders-group label { content: "معاك كام اوردر"; }
+.advanced-mode .affiliate-column { display: none; }
+.advanced-mode .ecommerce-column { display: table-cell; }
+.advanced-mode #ltv-table-detailed, .advanced-mode #charts-detailed { display: block; }
+/* Affiliate Mode */
+.affiliate-mode #price-group, .affiliate-mode #cogs-group, .affiliate-mode #shippingDelivered-group, .affiliate-mode #shippingReturn-group, .affiliate-mode #ltvMultiplier-group { display: none; }
+.affiliate-mode #itemPrice-group, .affiliate-mode #shippingCost-group, .affiliate-mode #sellingPriceAffiliate-group, .affiliate-mode #confirmationRate-group, .affiliate-mode #monthlyCosts-group, .affiliate-mode #commission-group { display: block; }
+.affiliate-mode #targetOrders-group label { content: "عدد الأوردرات"; }
+.affiliate-mode .ecommerce-column { display: none; }
+.affiliate-mode .affiliate-column { display: table-cell; }
+.affiliate-mode #ltv-table-detailed, .affiliate-mode #charts-detailed { display: none; }
+/* New CSS for read-only fields */
+input.form-control[readonly] {
+    background-color: var(--bg);
+    opacity: 0.7;
+    cursor: not-allowed;
+    border-color: #d1d5db;
+}
+.dark-mode input.form-control[readonly] {
+    background-color: #2a2a2a;
+    border-color: #3b3b3b;
+}
 @media (max-width:768px){ .controls .col-md-3, .controls .col-md-4, .controls .col-md-9{flex:0 0 100%;max-width:100%} }
+
+/* Popup Styling */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
+}
+
+.popup-content {
+    background: var(--card);
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(2, 6, 23, 0.15);
+    text-align: center;
+    position: relative;
+    max-width: 400px;
+    width: 90%;
+}
+
+.popup-content h2 {
+    color: var(--accent);
+    margin-top: 0;
+}
+
+.popup-content p {
+    color: var(--text);
+    margin-bottom: 20px;
+}
+
+.popup-content h3 {
+    color: var(--text);
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.popup-content .palestine-support-message {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 15px;
+}
+
+.popup-content .palestine-flag-emoji {
+    font-size: 2em; /* Make the flag emoji larger */
+    display: block; /* Ensure it's on its own line */
+    margin: 0 auto 20px; /* Center it and add space below */
+}
+
+
+.close-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 20px;
+}
+/* Social Icons Styling */
+.social-icons {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.social-icons a {
+  font-size: 30px;
+  margin: 0 10px;
+  color: var(--accent);
+  transition: transform 0.2s;
+}
+.social-icons a:hover {
+  transform: scale(1.1);
+  color: #0d6efd;
+}
 </style>
 </head>
-<body>
+<body class="standard-mode">
 <div class="app">
   <div class="card-app">
     <div class="d-flex justify-content-between align-items-start mb-3">
       <div>
-        <h1>📊 E-Commerce Calculator </h1>
+        <h1>📊🇵🇸 E-Commerce Calculator</h1>
         <div class="muted">أحسب بكل سهولة بأختيارات تحميل مرنة (تصميم : محمود زكي)</div>
       </div>
       <div class="d-flex gap-2 align-items-center">
@@ -57,97 +173,112 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
           <option value="EUR">EUR</option>
           <option value="SAR">SAR</option>
         </select>
-        <button id="toggleMode" class="btn btn-outline-secondary">🌓 Dark/Light</button>
+        <button id="standardModeBtn" class="btn btn-primary">النسخة العادية</button>
+        <button id="advancedModeBtn" class="btn btn-outline-secondary">النسخة المتقدمة</button>
+        <button id="affiliateModeBtn" class="btn btn-outline-secondary">نسخة الأفلييت</button>
         <button id="exportCsv" class="btn btn-outline-secondary">⬇️ CSV</button>
         <button id="exportPdf" class="btn btn-outline-secondary">⬇️ PDF</button>
       </div>
     </div>
-
     <div id="status" class="small-muted mb-2"></div>
-
-    <!-- inputs -->
     <div class="row controls g-3">
-      <div class="col-md-3">
+      <div class="col-md-3" id="price-group">
         <label>💵 سعر البيع (AOV)</label>
         <input id="price" class="form-control" type="number" value="">
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3" id="cogs-group">
         <label>📦 تكلفة المنتج (COGS)</label>
         <input id="cogs" class="form-control" type="number" value="">
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3" id="shippingDelivered-group">
         <label>🚚 شحن الاوردر المتسلم</label>
         <input id="shippingDelivered" class="form-control" type="number" value="">
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3" id="shippingReturn-group">
         <label>🚚 شحن الاوردر المرتجع</label>
         <input id="shippingReturn" class="form-control" type="number" value="">
       </div>
-
+      <div class="col-md-3" id="itemPrice-group">
+        <label>📦 تكلفة المنتج</label>
+        <input id="itemPrice" class="form-control" type="number" value="">
+      </div>
+      <div class="col-md-3" id="shippingCost-group">
+        <label>🚚 تكلفة شحن الأوردر</label>
+        <input id="shippingCost" class="form-control" type="number" value="">
+      </div>
+      <div class="col-md-3" id="sellingPriceAffiliate-group">
+        <label>💰 سعر البيع شامل الشحن</label>
+        <input id="sellingPriceAffiliate" class="form-control" type="number" value="">
+      </div>
+      <div class="col-md-3" id="commission-group">
+        <label>🎁 عمولة الأوردر</label>
+        <input id="orderCommission" class="form-control" type="number" value="" readonly>
+      </div>
+      <div class="col-md-3" id="targetOrders-group">
+        <label id="targetOrdersLabel">🎯 عايز كام اوردر</label>
+        <input id="targetOrders" class="form-control" type="number" value="">
+      </div>
+      <div class="col-md-3" id="confirmationRate-group">
+        <label>✅ نسبة تأكيد الطلبات (%)</label>
+        <input id="confirmationRate" class="form-control" type="number" value="">
+      </div>
       <div class="col-md-3">
         <label>📈 نسبة التسليم (%)</label>
         <input id="deliveryRate" class="form-control" type="number" value="">
       </div>
-
-      <div class="col-md-3">
-        <label>🎯 عايز كام اوردر </label>
-        <input id="targetOrders" class="form-control" type="number" value="">
-      </div>
-      <div class="col-md-3">
+      <div class="col-md-3" id="ltvMultiplier-group">
         <label>🔁 LTV — متوقع العميل يشتري كام مرة </label>
         <input id="ltvMultiplier" class="form-control" type="number" step="0.1" value="">
       </div>
-
-      <div class="col-md-9">
+      <div class="col-md-3" id="monthlyCosts-group">
+        <label>💸 التكاليف الشهرية الثابتة</label>
+        <input id="monthlyCosts" class="form-control" type="number" value="">
+      </div>
+      <div class="col-md-9" id="cpaInput-group">
         <label>📌 حط الـ CPA (حط علام , بين كل رقم والتاني)</label>
         <input id="cpaInput" class="form-control" type="text" value="10,20,30,40,50,75,100,200,300,400,500">
         <div class="small-muted mt-1">مثال: 10,20,30 أو 5-200:5</div>
       </div>
-      <div class="col-md-3 d-flex align-items-end gap-2">
-  <button id="calcBtn" class="btn btn-primary w-100">⚡ احسب دلوقتي</button>
-  <button id="clearBtn" class="btn btn-outline-danger w-100">🧹 امسح المدخلات</button>
-</div>
     </div>
-
-    <!-- summary cards -->
-    <div class="summary-grid" id="summaryGrid" style="margin-top:18px"></div>
-
-    <!-- table results -->
-    <div class="table-card mt-3">
+    <div class="d-flex align-items-end gap-2 mt-3">
+      <button id="calcBtn" class="btn btn-primary w-100">⚡ احسب دلوقتي</button>
+      <button id="clearBtn" class="btn btn-outline-danger w-100">🧹 امسح المدخلات</button>
+    </div>
+    <div class="summary-grid" id="summaryGrid-detailed"></div>
+    <div class="table-card mt-3" id="detailed-results">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <div><strong>📋 جدول النتائج</strong><div class="small-muted">هنحسبلك كل التكلفة حسب كل CPA ونسبة التسليمات كمان.</div></div>
       </div>
       <div class="table-responsive">
         <table class="table table-bordered table-sm" id="resultsTable">
           <thead>
-  <tr>
-    <th>CPA</th>
-    <th>الاوردر المتسلمة</th>
-    <th>التكلفة الفعلية لكل اوردر</th>
-    <th>ربحك في الاوردر الواحد</th>
-    <th>هامش %</th>
-    <th>إجمالي تكلفة الإعلانات</th>
-    <th>إجمالي شحن</th>
-    <th>إجمالي تكلفة البضاعة</th>
-    <th>إجمالي تكلفة شحن المرتجعات</th> <!-- 👈 بديل عن Break-Even -->
-    <th>إجمالي الإيرادات الصافية</th>
-    <th>صافي الربح للتارجت</th>
-    <th>ROAS</th>
-    <th>ROI %</th>
-    <th>CAC</th>
-    <th>LTV</th>
-    <th>LTV / CAC</th>
-  </tr>
-</thead>
-<tbody></tbody>
-
+            <tr>
+              <th>CPA</th>
+              <th>الاوردر المتسلمة</th>
+              <th class="ecommerce-column">التكلفة الفعلية لكل اوردر</th>
+              <th class="affiliate-column">تكلفة الإعلان لكل اوردر</th>
+              <th class="ecommerce-column">ربحك في الاوردر الواحد</th>
+              <th class="affiliate-column">صافي ربح الأوردر</th>
+              <th>هامش %</th>
+              <th>إجمالي تكلفة الإعلانات</th>
+              <th class="ecommerce-column">إجمالي شحن</th>
+              <th class="ecommerce-column">إجمالي تكلفة البضاعة</th>
+              <th class="ecommerce-column">إجمالي تكلفة شحن المرتجعات</th>
+              <th>إجمالي الإيرادات الصافية</th>
+              <th>صافي الربح للتارجت</th>
+              <th>ROAS</th>
+              <th>POAS</th>
+              <th>ROI %</th>
+              <th class="ecommerce-column">CAC</th>
+              <th class="ecommerce-column">LTV</th>
+              <th class="ecommerce-column">LTV / CAC</th>
+            </tr>
+          </thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
-
-    <!-- new table: LTV vs CAC analysis -->
-    <div class="table-card mt-3">
+    <div class="table-card mt-3" id="ltv-table-detailed">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <div><strong>📊 تحليل الربح مقابل الخسارة مع LTV و CAC</strong><div class="small-muted">هنا نشوف إزاي الخسارة ممكن تتحول لربح حسب LTV وCAC</div></div>
       </div>
@@ -162,41 +293,190 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
               <th>الحالة (ربح/خسارة)</th>
               <th>الربح المتوقع بعد LTV</th>
             </tr>
+</thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="table-card mt-3" id="scenarios-table-detailed">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div><strong>🤔 تحليل السيناريوهات (صافي الربح)</strong><div class="small-muted">تخمينات للربح لو تغيرت نسبة التسليم والـ CPA</div></div>
+      </div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+          <span>ادخل قيمة الcpa لحساب السيناريو:</span>
+          <input type="number" id="scenarioCpaInput" class="form-control" style="width: auto; background-color: #e9ecef; border: 2px solid #007bff;" value="">
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm" id="scenariosTable">
+          <thead>
+            <tr>
+              <th rowspan="2">السيناريو</th>
+              <th colspan="10" id="cpaChangesHeader">إذا تغير الـ CPA بـ:</th>
+            </tr>
+            <tr>
+              <th>-50</th>
+              <th>-40</th>
+              <th>-30</th>
+              <th>-20</th>
+              <th>-10</th>
+              <th>+10</th>
+              <th>+20</th>
+              <th>+30</th>
+              <th>+40</th>
+              <th>+50</th>
+            </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
-
-    <!-- charts -->
-    <div class="table-card mt-3">
+    <div class="table-card mt-3" id="charts-detailed">
       <div><strong>📈 الرسوم البيانية</strong></div>
       <div style="height:160px"><canvas id="profitChart" height="160"></canvas></div>
       <div style="height:160px"><canvas id="ltvChart" height="160" class="mt-4"></canvas></div>
     </div>
-
     <div class="muted mt-3">ملاحظة: الحسابات تقريبية وتعتمد على المدخلات اللي كتبتها فوق.</div>
+  </div>
+</div>
+
+<div id="welcomePopup" class="popup-overlay">
+  <div class="popup-content">
+    <h2>أهلاً بك!</h2>
+    <p>نورت الموقع، نتمنى لك تجربة ممتعة ومفيدة.</p>
+    <p class="palestine-support-message">هذا الموقع ومصمم هذا الموقع يدعم القضية الفلسطينية</p>
+    <span class="palestine-flag-emoji">🇵🇸</span>
+    <h3>للتواصل والاقتراحات</h3>
+    <div class="social-icons">
+      <a href="https://www.facebook.com/mahmoudzakiofficial" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-square"></i></a>
+      <a href="https://www.facebook.com/mahmoudzakiofficial" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp-square"></i></a>
+    </div>
+    <button class="close-btn" onclick="closePopup()">متابعة</button>
   </div>
 </div>
 
 <script>
 (function(){
   const $ = id => document.getElementById(id);
+  let currentMode = 'standard';
+  let cpaList = [];
+  const savedInputs = {
+    standard: {
+      price: "150", cogs: "50", shippingDelivered: "25", shippingReturn: "25",
+      deliveryRate: "90", confirmationRate: "100", monthlyCosts: "", targetOrders: "100",
+      ltvMultiplier: "1.2", cpaInput: "10,15,20,25,30"
+    },
+    advanced: {
+      price: "150", cogs: "50", shippingDelivered: "25", shippingReturn: "25",
+      deliveryRate: "90", confirmationRate: "80", monthlyCosts: "5000", targetOrders: "100",
+      ltvMultiplier: "1.2", cpaInput: "10,15,20,25,30"
+    },
+    affiliate: {
+      itemPrice: "100", shippingCost: "25", sellingPriceAffiliate: "150", deliveryRate: "90", confirmationRate: "80", targetOrders: "100", monthlyCosts: "",
+      cpaInput: "10,15,20,25,30"
+    }
+  };
+  const standardInputIds = ['price', 'cogs', 'shippingDelivered', 'shippingReturn', 'deliveryRate', 'targetOrders', 'ltvMultiplier', 'cpaInput'];
+  const advancedInputIds = ['price', 'cogs', 'shippingDelivered', 'shippingReturn', 'deliveryRate', 'confirmationRate', 'monthlyCosts', 'targetOrders', 'ltvMultiplier', 'cpaInput'];
+  const affiliateInputIds = ['itemPrice', 'shippingCost', 'sellingPriceAffiliate', 'orderCommission', 'deliveryRate', 'confirmationRate', 'targetOrders', 'monthlyCosts', 'cpaInput'];
+
+  const allInputIds = [...new Set([...standardInputIds, ...advancedInputIds, ...affiliateInputIds])];
+
+  function getRelevantInputIds(mode) {
+    if (mode === 'standard') return standardInputIds;
+    if (mode === 'advanced') return advancedInputIds;
+    if (mode === 'affiliate') return affiliateInputIds;
+    return [];
+  }
+
+  function setMode(mode) {
+    saveInputs();
+    currentMode = mode;
+    const body = document.body;
+    body.classList.remove('standard-mode', 'advanced-mode', 'affiliate-mode');
+    body.classList.add(`${mode}-mode`);
+    
+    const btns = ['standardModeBtn', 'advancedModeBtn', 'affiliateModeBtn'];
+    btns.forEach(btnId => {
+      const btn = $(btnId);
+      if(btn) {
+        btn.classList.remove('btn-primary', 'btn-outline-secondary');
+        btn.classList.add(btnId.startsWith(mode) ? 'btn-primary' : 'btn-outline-secondary');
+      }
+    });
+
+    $('targetOrdersLabel').innerText = (mode === 'affiliate') ? 'عدد الأوردرات' : ((mode === 'advanced') ? 'معاك كام اوردر' : 'عايز كام اوردر');
+    
+    loadInputs();
+    calcAndRender();
+  }
+
+  function saveInputs() {
+    const ids = getRelevantInputIds(currentMode);
+    ids.forEach(id => {
+      const input = $(id);
+      if (input) {
+        if (!savedInputs[currentMode]) {
+          savedInputs[currentMode] = {};
+        }
+        savedInputs[currentMode][id] = input.value;
+      }
+    });
+  }
+  
+  function loadInputs() {
+    const source = savedInputs[currentMode] || {};
+    const ids = getRelevantInputIds(currentMode);
+    ids.forEach(id => {
+      const input = $(id);
+      if (input) {
+        input.value = source.hasOwnProperty(id) ? source[id] : '';
+      }
+    });
+    // For affiliate mode, re-calculate commission on load
+    if (currentMode === 'affiliate') {
+        updateOrderCommission();
+    }
+  }
+
+  function updateOrderCommission() {
+    const itemPrice = parseFloat($('itemPrice').value) || 0;
+    const shippingCost = parseFloat($('shippingCost').value) || 0;
+    const sellingPrice = parseFloat($('sellingPriceAffiliate').value) || 0;
+    const commission = sellingPrice - (itemPrice + shippingCost);
+    $('orderCommission').value = commission;
+  }
+  
   function setStatus(msg, isError=false){
     const el = $('status');
     if(el){ el.innerText = msg || ''; el.style.color = isError ? 'var(--bad)' : 'var(--good)'; }
     console.log('STATUS:', msg, isError);
   }
-
+  
+  function clearInputs(){
+    savedInputs.standard = {};
+    savedInputs.advanced = {};
+    savedInputs.affiliate = {};
+    allInputIds.forEach(id => {
+      const input = $(id);
+      if(input) input.value = '';
+    });
+    setStatus('تم مسح كل المدخلات', false);
+    $('summaryGrid-detailed').innerHTML = '';
+    document.querySelector('#resultsTable tbody').innerHTML = '';
+    document.querySelector('#ltvTable tbody').innerHTML = '';
+    document.querySelector('#scenariosTable tbody').innerHTML = '';
+    if(profitChart){ try{ profitChart.destroy(); }catch(e){} profitChart=null; }
+    if(ltvChart){ try{ ltvChart.destroy(); }catch(e){} ltvChart=null; }
+  }
+  
   window.addEventListener('error', (e)=>{
     setStatus(e.message || 'Error occurred', true);
     console.error(e);
   });
-
+  
   function parseCPAInput(text){
     const t = (text||'').trim();
     if(!t) return [10,20,30];
-    // support range like "5-200:5" or comma-separated list
     if(t.indexOf('-')>-1 && t.indexOf(':')>-1){
       const parts = t.split(':');
       const rangePart = parts[0];
@@ -213,173 +493,306 @@ tbody tr:hover{background:rgba(79,70,229,0.1);cursor:pointer;}
     }
     return t.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v));
   }
-
+  
   function f(n){ return Math.round((Number(n)||0 + Number.EPSILON)*100)/100; }
+  
+  function compute(params, cpa){
+    const {price, cogs, shippingDelivered, shippingReturn, deliveryRate, confirmationRate, monthlyCosts, targetOrders, ltvMultiplier, itemPrice, shippingCost, sellingPriceAffiliate} = params;
+    
+    let deliveredOrders, confirmedOrders, totalAds, totalRevenueNet, totalCosts, netProfit, profitPerDelivered, effectiveAdPerDelivered;
+    const orders = Number(targetOrders) || 0;
+    const monthlyCostsNum = Number(monthlyCosts) || 0;
+    
+    if (currentMode === 'affiliate') {
+        confirmedOrders = orders * (confirmationRate / 100);
+        deliveredOrders = confirmedOrders * (deliveryRate / 100);
+        totalAds = cpa * confirmedOrders;
+        totalRevenueNet = deliveredOrders * sellingPriceAffiliate;
+        const totalItemAndShippingCost = (deliveredOrders * itemPrice) + (deliveredOrders * shippingCost);
+        totalCosts = totalAds + totalItemAndShippingCost + monthlyCostsNum;
+        
+        const totalNonAdCosts = totalItemAndShippingCost + monthlyCostsNum;
+        let breakEvenCPA = 0;
+        if (confirmedOrders > 0) {
+            breakEvenCPA = f( (totalRevenueNet - totalNonAdCosts) / confirmedOrders );
+        }
+        
+        let breakEvenRoas = "غير محدد";
+        const totalProfitBeforeAds = totalRevenueNet - totalNonAdCosts;
+        if (totalProfitBeforeAds > 0) {
+             breakEvenRoas = f(totalRevenueNet / totalProfitBeforeAds);
+        }
 
-  function computeForCPA(params,cpa){
-    const {price,cogs,shippingDelivered,shippingReturn,deliveryRate,targetOrders,ltvMultiplier} = params;
-    const delivery = Math.max(0.0001, deliveryRate/100);
-    const deliveredOrders = targetOrders * delivery;
-    const returnedOrders = Math.max(0, targetOrders - deliveredOrders);
-    const effectiveAdPerDelivered = cpa / delivery;
-    const totalAds = effectiveAdPerDelivered * deliveredOrders;
-    const totalShipping = deliveredOrders * shippingDelivered;
-    const totalCOGS = deliveredOrders * cogs;
-    const totalReturnCost = returnedOrders * shippingReturn;
-    const totalRevenueNet = deliveredOrders * price;
-    const profitPerDelivered = (price - cogs - shippingDelivered) - effectiveAdPerDelivered;
-    const netProfit = totalRevenueNet - totalCOGS - totalShipping - totalAds - totalReturnCost;
-    const marginPct = totalRevenueNet>0 ? (netProfit/totalRevenueNet*100) : 0;
-    const roi = totalAds>0 ? (netProfit/totalAds*100) : 0;
-    const cac = deliveredOrders>0 ? totalAds/deliveredOrders : 0;
-    const ltv = (price - cogs - shippingDelivered) * ltvMultiplier;
-    const ltvToCac = cac>0 ? ltv/cac : 0;
-    const breakEvenCPA = price - cogs - shippingDelivered;
-    return {cpa:f(cpa),deliveredOrders:f(deliveredOrders),returnedOrders:f(returnedOrders),effectiveAdPerDelivered:f(effectiveAdPerDelivered),profitPerDelivered:f(profitPerDelivered),totalAds:f(totalAds),totalShipping:f(totalShipping),totalCOGS:f(totalCOGS),totalReturnCost:f(totalReturnCost),totalRevenueNet:f(totalRevenueNet),netProfit:f(netProfit),marginPct:f(marginPct),roi:f(roi),cac:f(cac),ltv:f(ltv),ltvToCac:f(ltvToCac),breakEvenCPA:f(breakEvenCPA)};
+        netProfit = totalRevenueNet - totalCosts;
+        profitPerDelivered = deliveredOrders > 0 ? (netProfit / deliveredOrders) : -cpa;
+        effectiveAdPerDelivered = deliveredOrders > 0 ? totalAds / deliveredOrders : cpa;
+        const marginPct = totalRevenueNet > 0 ? (netProfit / totalRevenueNet * 100) : 0;
+        const roi = totalCosts > 0 ? (netProfit / totalCosts * 100) : 0;
+        const roas = totalAds > 0 ? (totalRevenueNet / totalAds) : 0;
+        const poas = totalAds > 0 ? (netProfit / totalAds) : 0;
+        
+        return {
+            cpa: f(cpa), deliveredOrders: f(deliveredOrders), confirmedOrders: f(confirmedOrders), totalAds: f(totalAds),
+            totalRevenueNet: f(totalRevenueNet), netProfit: f(netProfit),
+            profitPerDelivered: f(profitPerDelivered), effectiveAdPerDelivered: f(effectiveAdPerDelivered),
+            marginPct: f(marginPct), roi: f(roi), roas: f(roas),
+            poas: f(poas),
+            breakEvenCPA: breakEvenCPA, breakEvenRoas: breakEvenRoas
+        };
+    } else { // Standard and Advanced modes
+        confirmedOrders = (currentMode === 'advanced') ? (orders * (confirmationRate / 100)) : orders;
+        deliveredOrders = confirmedOrders * (deliveryRate / 100);
+        
+        totalAds = cpa * orders;
+        
+        const returnedOrders = Math.max(0, confirmedOrders - deliveredOrders);
+        effectiveAdPerDelivered = deliveredOrders > 0 ? totalAds / deliveredOrders : 0;
+        const totalShipping = deliveredOrders * shippingDelivered;
+        const totalCOGS = deliveredOrders * cogs;
+        const totalReturnCost = returnedOrders * shippingReturn;
+        totalRevenueNet = deliveredOrders * price;
+        
+        totalCosts = totalAds + totalShipping + totalCOGS + totalReturnCost + (currentMode === 'advanced' ? monthlyCostsNum : 0);
+        netProfit = totalRevenueNet - totalCosts;
+        profitPerDelivered = deliveredOrders > 0 ? (netProfit / deliveredOrders) : 0;
+        
+        const totalNonAdCosts = totalShipping + totalCOGS + totalReturnCost + (currentMode === 'advanced' ? monthlyCostsNum : 0);
+        
+        let breakEvenCPA = 0;
+        if (orders > 0) {
+            breakEvenCPA = f( (totalRevenueNet - totalNonAdCosts) / orders );
+        }
+        
+        let breakEvenRoas = "غير محدد";
+        if (breakEvenCPA > 0 && totalRevenueNet > 0) {
+            const totalAdsBreakEven = breakEvenCPA * orders;
+            if (totalAdsBreakEven > 0) {
+                 breakEvenRoas = f(totalRevenueNet / totalAdsBreakEven);
+            }
+        }
+
+        const marginPct = totalRevenueNet > 0 ? (netProfit / totalRevenueNet * 100) : 0;
+        const roi = totalCosts > 0 ? (netProfit / totalCosts * 100) : 0;
+        const cac = deliveredOrders > 0 ? totalAds / deliveredOrders : 0;
+        const ltv = (price - cogs - shippingDelivered) * ltvMultiplier;
+        const ltvToCac = cac > 0 ? ltv / cac : 0;
+        const roas = totalAds > 0 ? (totalRevenueNet / totalAds) : 0;
+        const poas = totalAds > 0 ? (netProfit / totalAds) : 0;
+
+        return {
+            cpa: f(cpa), deliveredOrders: f(deliveredOrders), confirmedOrders: f(confirmedOrders), effectiveAdPerDelivered: f(effectiveAdPerDelivered),
+            profitPerDelivered: f(profitPerDelivered), totalAds: f(totalAds), totalShipping: f(totalShipping), totalCOGS: f(totalCOGS), totalReturnCost: f(totalReturnCost),
+            totalRevenueNet: f(totalRevenueNet), netProfit: f(netProfit), marginPct: f(marginPct), roi: f(roi), cac: f(cac), ltv: f(ltv), ltvToCac: f(ltvToCac),
+            roas: f(roas), poas: f(poas),
+            breakEvenCPA: f(breakEvenCPA), breakEvenRoas: breakEvenRoas
+        };
+    }
   }
-
+  
   let profitChart = null, ltvChart = null;
-
   function renderCharts(rows){
+    if (currentMode === 'affiliate') {
+        $('ltv-table-detailed').style.display = 'none';
+        $('charts-detailed').style.display = 'none';
+    } else {
+        $('ltv-table-detailed').style.display = 'block';
+        $('charts-detailed').style.display = 'block';
+    }
+    
     try{
       if(typeof Chart === 'undefined'){ setStatus('Chart.js غير محمّل — الرسوم البيانية لن تظهر', true); return; }
       const labels = rows.map(r=>r.cpa);
       const profitData = rows.map(r=>r.netProfit);
-      const ltvRatioData = rows.map(r=>f(r.ltvToCac));
-      // destroy
       if(profitChart){ try{ profitChart.destroy(); }catch(e){} profitChart=null; }
       if(ltvChart){ try{ ltvChart.destroy(); }catch(e){} ltvChart=null; }
+      
       const profitCtx = document.getElementById('profitChart').getContext('2d');
       profitChart = new Chart(profitCtx, {
         type: 'line',
-        data: { labels, datasets: [{ label: 'Net Profit', data: profitData, fill:false, tension:0.3, pointRadius:4 }] },
-        options: { responsive:true, maintainAspectRatio:false, scales:{ x:{ title:{display:true,text:'CPA'} }, y:{ title:{display:true,text:'Net Profit'} } } }
+        data: { labels, datasets: [{ label: 'صافي الربح', data: profitData, fill:false, tension:0.3, pointRadius:4 }] },
+        options: { responsive:true, maintainAspectRatio:false, scales:{ x:{ title:{display:true,text:'CPA'} }, y:{ title:{display:true,text:'صافي الربح'} } } }
       });
-      const ltvCtx = document.getElementById('ltvChart').getContext('2d');
-      ltvChart = new Chart(ltvCtx, { type:'bar', data:{ labels, datasets:[{ label:'LTV / CAC', data:ltvRatioData, borderWidth:1 }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{ title:{display:true,text:'CPA'} }, y:{ title:{display:true,text:'LTV / CAC'}, beginAtZero:true } } } });
+      
+      if(currentMode !== 'affiliate') {
+        const ltvRatioData = rows.map(r=>f(r.ltvToCac));
+        const ltvCtx = document.getElementById('ltvChart').getContext('2d');
+        ltvChart = new Chart(ltvCtx, { type:'bar', data:{ labels, datasets:[{ label:'LTV / CAC', data:ltvRatioData, borderWidth:1 }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{ title:{display:true,text:'CPA'} }, y:{ title:{display:true,text:'LTV / CAC'}, beginAtZero:true } } } });
+      }
+      
       setStatus('تم تحديث الجداول والرسوم البيانية', false);
     }catch(err){ console.error(err); setStatus('خطأ في عرض الرسوم: '+err.message, true); }
+  }
+
+  function renderScenarioTable(initialParams, initialCpa){
+    const scenariosTableBody = document.querySelector('#scenariosTable tbody');
+    scenariosTableBody.innerHTML = '';
+    const currency = $('currency').value || 'EGP';
+    const deliveryRateChanges = [-20, -15, -10, -5, 5, 10, 15, 20];
+    const cpaChanges = [-50, -40, -30, -20, -10, 10, 20, 30, 40, 50];
+    const initialDeliveryRate = parseFloat(initialParams.deliveryRate);
+    const initialCpaNum = parseFloat(initialCpa);
+    
+    // Validate the input CPA for the scenario
+    if (isNaN(initialCpaNum) || initialCpaNum <= 0) {
+      scenariosTableBody.innerHTML = `<tr><td colspan="11" style="text-align: center;">الرجاء إدخال قيمة CPA صالحة وموجبة لحساب السيناريو.</td></tr>`;
+      return;
+    }
+
+    deliveryRateChanges.forEach(change => {
+      let newDeliveryRate = initialDeliveryRate + change;
+      newDeliveryRate = Math.min(100, newDeliveryRate);
+      const tr = document.createElement('tr');
+      const changeText = change > 0 ? `${change}%+` : `${Math.abs(change)}%-`;
+      let cells = `<td>${newDeliveryRate}% (${changeText})</td>`;
+
+      cpaChanges.forEach(cpaChange => {
+        const newCpa = initialCpaNum + cpaChange;
+        
+        // Check if the new CPA is a valid positive number
+        if (newCpa <= 0) {
+          cells += `<td class="value">---</td>`;
+        } else {
+          const scenarioParams = { ...initialParams, deliveryRate: newDeliveryRate };
+          const result = compute(scenarioParams, newCpa);
+          const profit = result.netProfit;
+          const profitClass = profit >= 0 ? 'good' : 'bad';
+          cells += `<td class="value ${profitClass}">${f(profit)} ${currency}</td>`;
+        }
+      });
+      tr.innerHTML = cells;
+      scenariosTableBody.appendChild(tr);
+    });
   }
 
   function calcAndRender(){
     try{
       setStatus('...جاري الحساب');
       const currency = $('currency').value || 'EGP';
-      const params = {
-        price: parseFloat($('price').value)||0,
-        cogs: parseFloat($('cogs').value)||0,
-        shippingDelivered: parseFloat($('shippingDelivered').value)||0,
-        shippingReturn: parseFloat($('shippingReturn').value)||0,
-        deliveryRate: parseFloat($('deliveryRate').value)||100,
-        targetOrders: parseFloat($('targetOrders').value)||0,
-        ltvMultiplier: Math.max(0, parseFloat($('ltvMultiplier').value)||0)
-      };
-
-      const cpaList = parseCPAInput($('cpaInput').value);
+      
+      saveInputs();
+      
+      const params = savedInputs[currentMode];
+      
+      cpaList = parseCPAInput(params.cpaInput);
       if(!cpaList.length){ setStatus('محتاج تحط قيم CPA صحيحة', true); return; }
-      const rows = cpaList.map(cpa => computeForCPA(params, cpa));
+      
+      const rows = cpaList.map(cpa => compute(params, cpa));
+      
+      const summaryGrid = $('summaryGrid-detailed');
+      const resultsTableBody = document.querySelector('#resultsTable tbody');
+      
+      summaryGrid.innerHTML = '';
+      resultsTableBody.innerHTML = '';
+      
+      const r = rows[0];
 
-// summary
-const avgProfit = f(rows.reduce((a,b)=>a+b.profitPerDelivered,0)/rows.length);
-const avgROI = f(rows.reduce((a,b)=>a+b.roi,0)/rows.length);
-const avgCPA = f(rows.reduce((a,b)=>a+b.cpa,0)/rows.length);
-const breakEvenCPA = f(params.price - params.cogs - params.shippingDelivered);
-const breakEvenROAS = f(params.price / (params.cogs + params.shippingDelivered)); // 💡 هنا حسبنا ROAS التعادل
+      const avgProfitPerDelivered = rows.reduce((sum, row) => sum + row.profitPerDelivered, 0) / rows.length;
+      const avgNetProfit = rows.reduce((sum, row) => sum + row.netProfit, 0) / rows.length;
+      const avgROI = rows.reduce((sum, row) => sum + row.roi, 0) / rows.length;
+      const avgCPA = rows.reduce((sum, row) => sum + row.cpa, 0) / rows.length;
+      const avgRoas = rows.reduce((sum, row) => sum + row.roas, 0) / rows.length;
+      const avgPoas = rows.reduce((sum, row) => sum + row.poas, 0) / rows.length;
 
-const sum = $('summaryGrid');
-sum.innerHTML = `
-  <div class="summary-card blue">
-    <div class="title">📊 متوسط الربح لكل أوردر</div>
-    <div class="value ${avgProfit>=0 ? 'good' : 'bad'}">${avgProfit} ${currency}</div>
-    <div class="small-muted">متوسط على CPAs المدخلة</div>
-  </div>
-  <div class="summary-card green">
-    <div class="title">💰 متوسط إجمالي ربح التارجت</div>
-    <div class="value">${f(rows.reduce((a,b)=>a+b.netProfit,0)/rows.length)} ${currency}</div>
-    <div class="small-muted">متوسط على CPAs</div>
-  </div>
-  <div class="summary-card green">
-    <div class="title">🏆 متوسط CPA</div>
-    <div class="value">${avgCPA} ${currency}</div>
-    <div class="small-muted">متوسط على CPAs</div>
-  </div>
-  <div class="summary-card purple">
-    <div class="title">📈 متوسط ROI</div>
-    <div class="value">${avgROI} %</div>
-    <div class="small-muted">متوسط على CPAs</div>
-  </div>
-  <div class="summary-card orange">
-    <div class="title">⚖️ Break-Even CPA</div>
-    <div class="value">${breakEvenCPA} ${currency}</div>
-    <div class="small-muted">أقصى CPA للربح 0</div>
-  </div>
-  <div class="summary-card purple">
-    <div class="title">📊 Break-Even ROAS</div>
-    <div class="value">${breakEvenROAS}x</div>
-    <div class="small-muted">أقل ROAS لتحقيق التعادل</div>
-  </div>
-`;
-
-
-      // results table
-      const tbody = document.querySelector('#resultsTable tbody');
-      tbody.innerHTML = '';
+      summaryGrid.innerHTML = `
+        <div class="summary-card blue">
+          <div class="title">الربح الصافي لكل أوردر (متوسط)</div>
+          <div class="value ${avgProfitPerDelivered>=0 ? 'good' : 'bad'}">${f(avgProfitPerDelivered)} ${currency}</div>
+          <div class="small-muted">متوسط على كل الـ CPAs</div>
+        </div>
+        <div class="summary-card green">
+          <div class="title">إجمالي الربح الصافي (متوسط)</div>
+          <div class="value">${f(avgNetProfit)} ${currency}</div>
+          <div class="small-muted">متوسط على كل الـ CPAs</div>
+        </div>
+        <div class="summary-card green">
+          <div class="title">🏆 متوسط CPA</div>
+          <div class="value">${f(avgCPA)} ${currency}</div>
+          <div class="small-muted">متوسط على كل الـ CPAs</div>
+        </div>
+        <div class="summary-card purple">
+          <div class="title">📈 الـ ROI الصافي (متوسط)</div>
+          <div class="value">${f(avgROI)} %</div>
+          <div class="small-muted">متوسط على كل الـ CPAs</div>
+        </div>
+        <div class="summary-card orange">
+          <div class="title">⚖️ Break-Even CPA</div>
+          <div class="value">${f(r.breakEvenCPA)} ${currency}</div>
+          <div class="small-muted">أقصى CPA للربح 0</div>
+        </div>
+        <div class="summary-card purple">
+          <div class="title">📊 ROAS نقطة التعادل</div>
+          <div class="value">${f(r.breakEvenRoas)}x</div>
+          <div class="small-muted">الأرباح = صفر</div>
+        </div>
+      `;
+      
       rows.forEach(r=>{
         const tr = document.createElement('tr');
         let profitClass = 'good';
         if(r.netProfit<0) profitClass='bad';
         else if(Math.abs(r.netProfit)<Math.abs(r.totalRevenueNet)*0.05) profitClass='warn';
+        
         tr.innerHTML = `
           <td>${r.cpa}</td>
           <td>${r.deliveredOrders}</td>
-          <td>${r.effectiveAdPerDelivered} ${currency}</td>
-          <td class="value ${r.profitPerDelivered>=0?'good':'bad'}">${r.profitPerDelivered} ${currency}</td>
+          <td class="ecommerce-column">${r.effectiveAdPerDelivered} ${currency}</td>
+          <td class="affiliate-column">${r.effectiveAdPerDelivered} ${currency}</td>
+          <td class="ecommerce-column value ${r.profitPerDelivered>=0?'good':'bad'}">${r.profitPerDelivered} ${currency}</td>
+          <td class="affiliate-column value ${r.profitPerDelivered>=0?'good':'bad'}">${r.profitPerDelivered} ${currency}</td>
           <td>${r.marginPct}%</td>
           <td>${r.totalAds} ${currency}</td>
-          <td>${r.totalShipping} ${currency}</td>
-          <td>${r.totalCOGS} ${currency}</td>
-          <td>${r.totalReturnCost} ${currency}</td>
+          <td class="ecommerce-column">${r.totalShipping} ${currency}</td>
+          <td class="ecommerce-column">${r.totalCOGS} ${currency}</td>
+          <td class="ecommerce-column">${r.totalReturnCost} ${currency}</td>
           <td>${r.totalRevenueNet} ${currency}</td>
           <td class="value ${profitClass}">${r.netProfit} ${currency}</td>
-          <td>${r.totalAds > 0 ? f(r.totalRevenueNet / r.totalAds)+'x' : '-'}</td>
+          <td>${r.roas}x</td>
+          <td>${r.poas}x</td>
           <td>${r.roi} %</td>
-          <td>${r.cac} ${currency}</td>
-          <td>${r.ltv} ${currency}</td>
-          <td>${f(r.ltvToCac)}</td>
+          <td class="ecommerce-column">${r.cac} ${currency}</td>
+          <td class="ecommerce-column">${r.ltv} ${currency}</td>
+          <td class="ecommerce-column">${f(r.ltvToCac)}</td>
         `;
-        tbody.appendChild(tr);
+        resultsTableBody.appendChild(tr);
       });
 
-      // LTV table
-      const ltvTbody = document.querySelector('#ltvTable tbody');
-      ltvTbody.innerHTML = '';
-      rows.forEach(r=>{
-        const tr = document.createElement('tr');
-        const state = r.ltvToCac >= 1 ? 'ربح' : 'خسارة';
-        const expectedProfit = (r.ltvToCac-1)*r.cac*r.deliveredOrders;
-        tr.innerHTML = `
-          <td>${r.cpa}</td>
-          <td>${r.cac} ${currency}</td>
-          <td>${r.ltv} ${currency}</td>
-          <td>${f(r.ltvToCac)}</td>
-          <td class="value ${state==='ربح'?'good':'bad'}">${state}</td>
-          <td>${f(expectedProfit)} ${currency}</td>
-        `;
-        ltvTbody.appendChild(tr);
-      });
-
-      // charts (try, but don't fail entire flow)
+      if(currentMode !== 'affiliate') {
+        const ltvTableBody = document.querySelector('#ltvTable tbody');
+        ltvTableBody.innerHTML = '';
+        rows.forEach(r=>{
+          const tr = document.createElement('tr');
+          const state = r.ltvToCac >= 1 ? 'ربح' : 'خسارة';
+          const expectedProfit = (r.ltvToCac-1)*r.cac*r.deliveredOrders;
+          tr.innerHTML = `
+            <td>${r.cpa}</td>
+            <td>${r.cac} ${currency}</td>
+            <td>${r.ltv} ${currency}</td>
+            <td>${f(r.ltvToCac)}</td>
+            <td class="value ${state==='ربح'?'good':'bad'}">${state}</td>
+            <td>${f(expectedProfit)} ${currency}</td>
+          `;
+          ltvTableBody.appendChild(tr);
+        });
+      }
+      
       try{ renderCharts(rows); }catch(e){ console.error(e); }
+      
+      const scenarioCpaInput = $('scenarioCpaInput');
+      if (scenarioCpaInput.value === '' && cpaList.length > 0) {
+        scenarioCpaInput.value = cpaList[0];
+      }
+      const selectedCpa = scenarioCpaInput.value;
+      renderScenarioTable(params, selectedCpa);
 
-    setStatus('تم الحساب — شوف الجدول والرسوم تحت', false);
+      setStatus('تم الحساب — شوف الجدول والرسوم تحت', false);
     }catch(err){ console.error(err); setStatus('خطأ أثناء الحساب: '+err.message, true); }
   }
-
+  
   function exportCsvFn(){
     try{
       const rows = Array.from(document.querySelectorAll('#resultsTable tbody tr'));
-      if(!rows.length){ setStatus('مفيش بيانات عشان تحميل CSV', true); return; }
       const header = Array.from(document.querySelectorAll('#resultsTable thead th')).map(th=>th.innerText);
+      if(!rows.length){ setStatus('مفيش بيانات عشان تحميل CSV', true); return; }
       const data = [header].concat(rows.map(row => Array.from(row.querySelectorAll('td')).map(cell=>cell.innerText)));
       const csvContent = data.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
       const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
@@ -393,7 +806,7 @@ sum.innerHTML = `
       setStatus('CSV تم تنزيله', false);
     }catch(err){ console.error(err); setStatus('فشل تصدير CSV: '+err.message, true); }
   }
-
+  
   function exportPdfFn(){
     try{
       if(typeof html2canvas === 'undefined' || (typeof window.jspdf === 'undefined' && typeof jspdf === 'undefined')){
@@ -415,44 +828,84 @@ sum.innerHTML = `
     }catch(err){ console.error(err); setStatus('فشل تصدير PDF: '+err.message, true); }
   }
 
-  function init(){
-const clearBtn = $('clearBtn');
-if(clearBtn){
-  clearBtn.addEventListener('click', ()=>{
-    // فضي كل الخانات
-    $('price').value = '';
-    $('cogs').value = '';
-    $('shippingDelivered').value = '';
-    $('shippingReturn').value = '';
-    $('deliveryRate').value = '';
-    $('targetOrders').value = '';
-    $('ltvMultiplier').value = '';
-    $('cpaInput').value = '';
-    setStatus('تم مسح كل المدخلات', false);
-    $('summaryGrid').innerHTML = '';
-    document.querySelector('#resultsTable tbody').innerHTML = '';
-    document.querySelector('#ltvTable tbody').innerHTML = '';
-  });
-}
+  // Popup Functions
+  function showPopup() {
+    const popup = $('welcomePopup');
+    if (popup) {
+      popup.style.visibility = 'visible';
+      popup.style.opacity = '1';
+    }
+  }
 
-    // attach events
+  window.closePopup = function() {
+    const popup = $('welcomePopup');
+    if (popup) {
+      popup.style.visibility = 'hidden';
+      popup.style.opacity = '0';
+    }
+  }
+  
+  function init(){
     const calcBtn = $('calcBtn');
+    const clearBtn = $('clearBtn');
     const exportCsv = $('exportCsv');
     const exportPdf = $('exportPdf');
-    const toggleMode = $('toggleMode');
-    if(!calcBtn || !exportCsv || !exportPdf || !toggleMode){ setTimeout(init,100); return; }
+    const standardModeBtn = $('standardModeBtn');
+    const advancedModeBtn = $('advancedModeBtn');
+    const affiliateModeBtn = $('affiliateModeBtn');
+
+    if(!calcBtn || !clearBtn || !exportCsv || !exportPdf || !standardModeBtn || !advancedModeBtn || !affiliateModeBtn){
+      setTimeout(init,100);
+      return;
+    }
+    
+    // Add event listeners to all relevant input fields to save changes
+    allInputIds.forEach(id => {
+      const input = $(id);
+      if (input) {
+        input.addEventListener('change', saveInputs);
+      }
+    });
+
     calcBtn.addEventListener('click', calcAndRender);
+    clearBtn.addEventListener('click', clearInputs);
     exportCsv.addEventListener('click', exportCsvFn);
     exportPdf.addEventListener('click', exportPdfFn);
-    toggleMode.addEventListener('click', ()=>document.body.classList.toggle('dark-mode'));
-    // initial run
-    calcAndRender();
-    // detect load errors of libs
+    standardModeBtn.addEventListener('click', () => setMode('standard'));
+    advancedModeBtn.addEventListener('click', () => setMode('advanced'));
+    affiliateModeBtn.addEventListener('click', () => setMode('affiliate'));
+    
+    // Add event listener for the new scenario CPA input field
+    const scenarioCpaInput = $('scenarioCpaInput');
+    scenarioCpaInput.addEventListener('input', (event) => {
+        const selectedCpa = event.target.value;
+        const params = savedInputs[currentMode];
+        renderScenarioTable(params, selectedCpa);
+    });
+
+    // Add event listeners to calculate commission in real time for affiliate mode
+    ['itemPrice', 'shippingCost', 'sellingPriceAffiliate'].forEach(id => {
+      const input = $(id);
+      if (input) {
+        input.addEventListener('input', () => {
+          if (currentMode === 'affiliate') {
+            updateOrderCommission();
+          }
+        });
+      }
+    });
+
+    // Set initial mode to standard and load default values
+    setMode('standard');
+
+    // Show popup after 1 second
+    setTimeout(showPopup, 1000);
+
     if(window._chartLoadError) setStatus('فشل تحميل Chart.js — الرسوم البيانية لن تعمل', true);
     if(window._html2canvasLoadError) setStatus('فشل تحميل html2canvas — تصدير PDF لن يعمل', true);
     if(window._jspdfLoadError) setStatus('فشل تحميل jspdf — تصدير PDF لن يعمل', true);
   }
-
+  
   window.addEventListener('load', init);
 })();
 </script>
